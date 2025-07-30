@@ -1,23 +1,20 @@
-import http from './axiosInstance';
-interface LoginPayload {
-  username: string;
-  password: string;
-}
+import http from './axiosInstance'
+import type { BaseResponse, LoginResponse } from '../models/BaseResponse'
 
-
-interface LoginResponse {
-  token: string;
-  userId: string;
-  // ... any other user data
+type LoginPayload = {
+  username: string
+  password: string
 }
 
 export const authService = {
-  login(payload: LoginPayload): Promise<LoginResponse> {
-    return http.post<LoginResponse>('/auth/login', payload).then(response => response);
+  login(payload: LoginPayload): Promise<BaseResponse<LoginResponse>> {
+    return http.post<BaseResponse<LoginResponse>>('/Auth/ManageLogin', payload).then((response) => {
+      return response
+    })
   },
-  logout(): Promise<any> {
+  logout(): Promise<void> {
     // Assuming your backend has a logout endpoint
-    return http.post('/auth/logout');
+    return http.post('/auth/logout')
   },
   // You can add more auth-related functions here, e.g., register, refreshToken
-};
+}
