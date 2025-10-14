@@ -1,5 +1,7 @@
 // index.ts
 import axios from 'axios'
+import { getToken, removeToken } from '@/utils/tokenHelper'
+
 import type {
   AxiosInstance,
   AxiosRequestConfig,
@@ -8,10 +10,22 @@ import type {
   InternalAxiosRequestConfig,
 } from 'axios'
 
-type Result<T> = {
+type Result<T = unknown> = {
   code: number
   message: string
-  result: T
+  data: T
+}
+
+type PageResponse<T = unknown> = {
+  msg?: string
+  code?: number
+  data?: T
+  pageInfo?: PageInfo
+}
+
+type PageInfo = {
+  page: number
+  total: number
 }
 
 // 导出Request，可以用来自定义传递配置来创建实例
@@ -19,7 +33,7 @@ export class Request {
   // axios 实例
   instance: AxiosInstance
   // 基础配置，url和超时时间
-  baseConfig: AxiosRequestConfig = { baseURL: '/api', timeout: 60000 }
+  baseConfig: AxiosRequestConfig = { baseURL: import.meta.env.VITE_APP_API_URL, timeout: 60000 }
 
   // index.ts
   constructor(config: AxiosRequestConfig) {
@@ -28,7 +42,7 @@ export class Request {
     this.instance.interceptors.request.use(
       (config: InternalAxiosRequestConfig) => {
         // 一般会请求拦截里面加token，用于后端的验证
-        const token = localStorage.getItem('token') as string
+        const token = getToken()
         if (token) {
           config.headers = config.headers || {}
           config.headers.Authorization = token
@@ -41,7 +55,7 @@ export class Request {
         return Promise.reject(err)
       },
     )
-
+    // 响应拦截器
     this.instance.interceptors.response.use(
       (res: AxiosResponse) => {
         // 直接返回res，当然你也可以只返回res.data
@@ -58,6 +72,8 @@ export class Request {
           case 401:
             message = '未授权，请重新登录(401)'
             // 这里可以做清空storage并跳转到登录页的操作
+            removeToken()
+            window.location.href = '/login'
             break
           case 403:
             message = '拒绝访问(403)'
@@ -141,3 +157,13 @@ export class Request {
 
 // 默认导出Request实例
 export default new Request({})
+
+export type { Result, PageResponse, PageInfo }
+
+// 调用方式
+// import request from './utils/request'
+// request.get('/users').then(res => {
+//   console.log(res.data)
+// }).catch(err => {
+//   console.log(err)
+// })
