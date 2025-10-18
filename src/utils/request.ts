@@ -16,15 +16,14 @@ type Result<T = unknown> = {
   data: T
 }
 
-type PageResponse<T = unknown> = {
+type PageResult<T = unknown> = {
   msg?: string
   code?: number
   data?: T
-  pageInfo?: PageInfo
+  meta?: PageInfo
 }
 
 type PageInfo = {
-  page: number
   total: number
 }
 
@@ -45,7 +44,7 @@ export class Request {
         const token = getToken()
         if (token) {
           config.headers = config.headers || {}
-          config.headers.Authorization = token
+          config.headers.Authorization = `Bearer ${token}`
         }
 
         return config
@@ -130,6 +129,12 @@ export class Request {
   ): Promise<AxiosResponse<Result<T>>> {
     return this.instance.get(url, config)
   }
+  public getPage<T = unknown>(
+    url: string,
+    config?: AxiosRequestConfig,
+  ): Promise<AxiosResponse<PageResult<T>>> {
+    return this.instance.get(url, config)
+  }
 
   public post<T = unknown>(
     url: string,
@@ -158,7 +163,7 @@ export class Request {
 // 默认导出Request实例
 export default new Request({})
 
-export type { Result, PageResponse, PageInfo }
+export type { Result, PageResult, PageInfo }
 
 // 调用方式
 // import request from './utils/request'
